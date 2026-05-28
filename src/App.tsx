@@ -508,6 +508,23 @@ export default function App() {
     }
   };
 
+  // 6.5 J.A.R.V.I.S. Interactive Agent Tasks Synchronizer
+  const handleInjectAgentTask = () => {
+    const newTask: TaskItem = {
+      id: `task-jarvis-${Date.now()}`,
+      text: "Synchronize Solidworks FEA stress contours with mechatronic core",
+      completed: false,
+      priority: "high",
+      createdAt: new Date().toISOString()
+    };
+    setTasks(prev => [newTask, ...prev]);
+    addLog("JARVIS", "Injected mechatronic task to active companion board.", "success");
+    playSyntheticAlert("chirp");
+    if (voiceSynthesisEnabled) {
+      speakAlertText("System task synchronized with active mechatronic pipeline.");
+    }
+  };
+
   // 7. Watchdog servers manual editing actions
   const handleAddServer = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1137,19 +1154,89 @@ export default function App() {
         </div>
       </footer>
 
-      {/* STATUS FOOTER BAR */}
-      <footer className="relative z-10 flex flex-col md:flex-row justify-between items-center text-[9px] border-t border-[#00ffff22] mt-5 pt-4 uppercase tracking-[0.2em] gap-2 select-none">
+      {/* STATUS FOOTER BAR & J.A.R.V.I.S. COPROCESSOR AGENT TASKBAR */}
+      <footer className="relative z-10 flex flex-col xl:flex-row justify-between items-center text-[9px] border-t border-[#00ffff22] mt-6 pt-5 uppercase tracking-[0.15em] gap-4 select-none bg-slate-950/20 p-4 rounded-2xl border border-cyan-500/10 shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+        {/* Core Connection Spec */}
         <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#22c55e]"></div>
-            Telemetry Connection Healthy
+          <div className="flex items-center gap-2 bg-[#020508] px-3 py-1.5 rounded-xl border border-cyan-500/10">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#22c55e] animate-pulse"></div>
+            <span className="text-emerald-400 font-bold">TELEMETRY LINK: ONLINE</span>
           </div>
-          <div className="opacity-70">Emulated Temp: Stable</div>
-          <div className="opacity-70">Core threads: 4 concurrent</div>
+          <div className="opacity-70 text-[8.5px] font-mono">Emulated Temp: Stable</div>
+          <div className="opacity-70 text-[8.5px] font-mono">Core Threads: 4 Active</div>
         </div>
-        <div className="flex gap-4">
-          <span className="text-cyan-400 animate-pulse">Awaiting Commands...</span>
-          <span className="opacity-60 text-slate-500">Terminal Hook: /dev/tty.pico</span>
+
+        {/* J.A.R.V.I.S Active Agent Interface Block */}
+        <div className="flex flex-1 max-w-xl items-center gap-3 px-3.5 py-1 bg-cyan-950/20 border border-cyan-400/20 rounded-xl mx-2 shadow-[inset_0_0_8px_rgba(6,182,212,0.1)]">
+          {/* Pulsing Arc Reactor Core Visual */}
+          <div 
+            onClick={() => {
+              playSyntheticAlert("chirp");
+              speakAlertText("Greetings. J.A.R.V.I.S. intelligence coprocessor is completely operational. Present parameters looks stable.");
+              addLog("JARVIS", "Agent triggered via console touch reactor.", "success");
+            }}
+            className="relative w-8 h-8 rounded-full border border-cyan-400/40 flex items-center justify-center cursor-pointer hover:border-cyan-300 transition-all shadow-[0_0_8px_rgba(6,182,212,0.2)] group"
+            title="Trigger J.A.R.V.I.S. Core Diagnostics Voice"
+          >
+            {/* Spinning Outer Ring */}
+            <div className="absolute inset-0.5 rounded-full border border-dashed border-cyan-400/60 animate-spin group-hover:animate-[spin_4s_linear_infinite]"></div>
+            {/* Pulsing Core */}
+            <div className={`w-3.5 h-3.5 rounded-full ${isJarvisTyping ? "bg-amber-400 shadow-[0_0_10px_#f59e0b] animate-ping" : "bg-cyan-400 shadow-[0_0_8px_#06b6d4] animate-pulse"}`}></div>
+          </div>
+
+          <div className="flex flex-col flex-1 truncate text-left">
+            <div className="flex items-center gap-1.5 text-[8px] font-bold text-cyan-300 tracking-wider">
+              <span>J.A.R.V.I.S. AGENT COPROCESSOR:</span>
+              <span className={isJarvisTyping ? "text-amber-400 animate-pulse font-bold" : "text-emerald-400 font-bold"}>
+                {isJarvisTyping ? "[THINKING...]" : "[ACTIVE STANDBY]"}
+              </span>
+            </div>
+            
+            {/* Live speech dialogue tracker */}
+            <div className="text-[8.5px] text-slate-300 lowercase truncate font-mono max-w-[320px]">
+              "{chatMessages[chatMessages.length - 1]?.text ? chatMessages[chatMessages.length - 1].text.slice(0, 75) + "..." : "Systems operational. awaiting instructions..."}"
+            </div>
+          </div>
+        </div>
+
+        {/* Active Taskbar Micro Controls */}
+        <div className="flex gap-2 items-center">
+          {/* Quick assessment action */}
+          <button
+            onClick={triggerSreDiagnostic}
+            disabled={isJarvisTyping}
+            className="px-2.5 py-1.5 bg-[#05080a] border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 rounded-lg text-[8px] font-bold uppercase transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+            title="Diagnose active mechatronic anomalies with J.A.R.V.I.S"
+          >
+            <Activity className="w-3 h-3 text-cyan-400 shrink-0" /> Assess SRE
+          </button>
+
+          {/* Inject task on task checklist */}
+          <button
+            onClick={handleInjectAgentTask}
+            className="px-2.5 py-1.5 bg-[#05080a] border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 rounded-lg text-[8px] font-bold uppercase transition-all flex items-center gap-1 cursor-pointer"
+            title="Let J.A.R.V.I.S inject diagnostic schedules"
+          >
+            <Plus className="w-3 h-3 text-cyan-400 shrink-0" /> Task Sync
+          </button>
+
+          {/* Voice toggle */}
+          <button
+            onClick={() => {
+              setVoiceSynthesisEnabled(!voiceSynthesisEnabled);
+              playSyntheticAlert("beep");
+            }}
+            className={`p-1.5 border rounded-lg transition-colors cursor-pointer ${
+              voiceSynthesisEnabled 
+                ? "bg-cyan-950/30 border-cyan-400/65 text-cyan-300 shadow-[0_0_6px_rgba(6,182,212,0.15)]" 
+                : "bg-slate-900/50 border-slate-800 text-slate-600"
+            }`}
+            title={voiceSynthesisEnabled ? "Mute JARVIS Synthesizer Audio" : "Unmute JARVIS Synthesizer Audio"}
+          >
+            <Volume2 className="w-3.5 h-3.5" />
+          </button>
+
+          <span className="opacity-45 text-slate-600 font-mono text-[7.5px] hidden md:inline ml-1">PORT: /dev/tty.pico</span>
         </div>
       </footer>
     </div>

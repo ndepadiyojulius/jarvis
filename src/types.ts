@@ -56,3 +56,34 @@ export interface TaskItem {
   priority: "high" | "medium" | "low";
   createdAt: string;
 }
+
+export interface MechatronicState {
+  fusionModel: {
+    activeFile: string;
+    lastSaved: string;
+    componentCount: number;
+    warnings: string[];
+    isStressed: boolean;
+  };
+  solidworksModel: {
+    activeAssembly: string;
+    meshCount: number;
+    factorOfSafety: number;
+    simulationStatus: "idle" | "running" | "completed" | "error";
+  };
+  tinkercadDesign: {
+    projectName: string;
+    partsList: string[];
+    viewUrl: string;
+  };
+  esp32Device: {
+    connectionType: "serial" | "mqtt" | "offline";
+    port: string;
+    baudRate: number;
+    voltage: number;
+    dutyCycle: number;
+    coreTempC: number;
+    status: "idle" | "measuring" | "calibrated" | "error";
+    lastTelemeteryTimestamp: string;
+  };
+}

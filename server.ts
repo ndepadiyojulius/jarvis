@@ -187,6 +187,102 @@ Please respond directly as the J.A.R.V.I.S. engineering companion, providing dir
   }
 });
 
+// Initial Mechatronic in-memory store
+let mechatronicData = {
+  fusionModel: {
+    activeFile: "Suspension_Arm_v3.f3d",
+    lastSaved: new Date().toISOString(),
+    componentCount: 64,
+    warnings: ["Over-constrained joint at Pivot_A (degree of freedom mismatch)", "Sketch 14 has broken projection reference"],
+    isStressed: false,
+  },
+  solidworksModel: {
+    activeAssembly: "CNC_Quill_Actuator.sldasm",
+    meshCount: 142050,
+    factorOfSafety: 1.85, // recommended is > 2.0
+    simulationStatus: "completed",
+  },
+  tinkercadDesign: {
+    projectName: "Pulse-Width Modulated Arduino Controller",
+    partsList: ["Arduino Uno R3", "Power MOSFET N-Channel", "Optocoupler 4N35", "DC Motor 12V", "Potentiometer 10k"],
+    viewUrl: "https://www.tinkercad.com/things/eHw23KlaB1u-pwm-motor-drive",
+  },
+  esp32Device: {
+    connectionType: "serial",
+    port: "COM4",
+    baudRate: 115200,
+    voltage: 3.28,
+    dutyCycle: 68.4,
+    coreTempC: 41.5,
+    status: "measuring",
+    lastTelemetryTimestamp: new Date().toISOString(),
+  }
+};
+
+// GET /api/mechatronics - Query mechatronics telemetry status
+app.get("/api/mechatronics", (req, res) => {
+  res.json(mechatronicData);
+});
+
+// POST /api/mechatronics - Update state (external telemetry simulator or local Python CAD script hook)
+app.post("/api/mechatronics", (req, res) => {
+  try {
+    const updated = req.body;
+    
+    // Deeply patch fields as suited
+    if (updated.fusionModel) mechatronicData.fusionModel = { ...mechatronicData.fusionModel, ...updated.fusionModel };
+    if (updated.solidworksModel) mechatronicData.solidworksModel = { ...mechatronicData.solidworksModel, ...updated.solidworksModel };
+    if (updated.tinkercadDesign) mechatronicData.tinkercadDesign = { ...mechatronicData.tinkercadDesign, ...updated.tinkercadDesign };
+    if (updated.esp32Device) {
+      mechatronicData.esp32Device = { 
+        ...mechatronicData.esp32Device, 
+        ...updated.esp32Device,
+        lastTelemetryTimestamp: new Date().toISOString()
+      };
+    }
+
+    res.json({ success: true, mechatronics: mechatronicData });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/gemini/mechatronics-diagnose - SRE engineering recommendations for mechatronic CAD metrics and hardware parameters
+app.post("/api/gemini/mechatronics-diagnose", async (req, res) => {
+  try {
+    const { state } = req.body;
+    const client = getGeminiClient();
+
+    const prompt = `Mechatronics Assessment Check:
+1. Fusion 360 File: "${state?.fusionModel?.activeFile || "Unknown"}" (Complex joint count: ${state?.fusionModel?.componentCount || 0}). Active warnings: ${JSON.stringify(state?.fusionModel?.warnings)}.
+2. SolidWorks simulation model: "${state?.solidworksModel?.activeAssembly || "Unknown"}". Active Finite Element Mesh Elements: ${state?.solidworksModel?.meshCount || 0}. Factor of Safety (FoS) simulated: ${state?.solidworksModel?.factorOfSafety || "N/A"}.
+3. ESP32 Sensor Telemetry: Signal channel state on port ${state?.esp32Device?.port || "N/A"}. Live Voltage: ${state?.esp32Device?.voltage}V. PWM Duty Cycle: ${state?.esp32Device?.dutyCycle}%. Core Temperature: ${state?.esp32Device?.coreTempC}°C.
+
+As an elite J.A.R.V.I.S-themed Mechatronics, CAD & Hardware Emulation expert, evaluate:
+1. Mechanical Risk Analysis: Identify if the SolidWorks Factor of Safety (FoS) is acceptable (generally FoS > 2.0 is safe, < 1.5 is risky under dynamic loads).
+2. Electronics Evaluation: Check if the ESP32 core temperature of ${state?.esp32Device?.coreTempC}°C and core voltage (${state?.esp32Device?.voltage}V) are healthy or showing signal fatigue.
+3. CAD Joint Error: Explain how to solve the active Fusion 360 warnings.
+4. Deliver high-end, witty, professional mechatronic advice on mechatronic calibration and mechatronic design.
+
+Format in neat markdown bullet points. High-tech, polite, and reassuring tone.`;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: prompt,
+      config: {
+        systemInstruction: "You are J.A.R.V.I.S., an elite cyber-physical systems engineering companion. You specialize in robotics, CAD analysis (Fusion 360, SolidWorks, Autodesk), mechatronic control, and ESP32 telemetry diagnostics.",
+      },
+    });
+
+    res.json({
+      response: response.text,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Setup dev server with Vite, or server static client build for production
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {

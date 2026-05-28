@@ -35,6 +35,7 @@ import CompanionHUD from "./components/CompanionHUD";
 import CalendarHUD from "./components/CalendarHUD";
 import TaskCenter from "./components/TaskCenter";
 import TerminalView from "./components/TerminalView";
+import MechatronicCenter from "./components/MechatronicCenter";
 import { playSyntheticAlert, speakAlertText } from "./components/AudioAlerts";
 
 export default function App() {
@@ -1117,6 +1118,17 @@ export default function App() {
         </aside>
 
       </main>
+
+      {/* MECHATRONICS INTEGRATION CONTROL PANEL */}
+      <section className="relative z-10 grid grid-cols-12 gap-5 mt-5">
+        <div className="col-span-12">
+          <MechatronicCenter 
+            logs={logs} 
+            addLog={addLog} 
+            voiceSynthesisEnabled={voiceSynthesisEnabled} 
+          />
+        </div>
+      </section>
 
       {/* DIAGNOSTIC LOG STREAM BOARD (Span 12 Columns) */}
       <footer className="relative z-10 grid grid-cols-12 gap-5 mt-5">

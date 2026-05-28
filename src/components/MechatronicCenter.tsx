@@ -264,6 +264,7 @@ export default function MechatronicCenter({ logs, addLog, voiceSynthesisEnabled 
   };
 
   // Windows 10 local python pipeline script
+  const liveOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
   const windowsPythonScript = `import time
 import requests
 import random
@@ -274,10 +275,12 @@ try:
 except ImportError:
     SW_AVAILABLE = False
 
-API_ENDPOINT = "http://localhost:3000/api/mechatronics"
+# Live remote or local offline server endpoint
+API_ENDPOINT = "${liveOrigin}/api/mechatronics"
 
 def poll_and_sync_local_mechatronics():
     print("[J.A.R.V.I.S.] Starting local Windows 10 mechatronic bridge...")
+    print(f"[HUD Sync Target] Directing telemetry packages to: {API_ENDPOINT}")
     
     while True:
         # Default fallback values
@@ -316,13 +319,15 @@ def poll_and_sync_local_mechatronics():
             }
         }
 
-        # 3. Stream to J.A.R.V.I.S. HUD Local port
+        # 3. Stream to J.A.R.V.I.S. HUD Local/Remote port
         try:
             r = requests.post(API_ENDPOINT, json=payload)
             if r.status_code == 200:
                 print(f"[HUD Sync] Telemetry transmitted successfully. Latency check ok.")
+            else:
+                print(f"[HUD Sync] Warning: Server returned status {r.status_code}")
         except Exception as e:
-            print(f"[HUD Sync] Connection failed: {e}. Is the J.A.R.V.I.S web app dev server running on port 3000?")
+            print(f"[HUD Sync] Connection failed: {e}. Is the J.A.R.V.I.S server running and accessible?")
 
         time.sleep(4)
 

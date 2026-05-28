@@ -164,6 +164,12 @@ export default function App() {
   const [micEnabled, setMicEnabled] = useState(false);
   const [micVolume, setMicVolume] = useState(0); // 0-100 real volume
   const [voiceSynthesisEnabled, setVoiceSynthesisEnabled] = useState(true);
+  const [offlineMode, setOfflineMode] = useState(false);
+
+  const offlineModeRef = useRef(offlineMode);
+  useEffect(() => {
+    offlineModeRef.current = offlineMode;
+  }, [offlineMode]);
 
   // Jarvis assistant chat state
   const [chatInput, setChatInput] = useState("");
@@ -242,6 +248,25 @@ export default function App() {
       const activeServers = currentList.filter((s) => s.enabled);
       activeServers.forEach(async (srv) => {
         try {
+          if (offlineModeRef.current) {
+            // High-fidelity local loop simulated ping
+            setServers((prevList) =>
+              prevList.map((item) => {
+                if (item.id === srv.id) {
+                  return {
+                    ...item,
+                    status: "online",
+                    latencyMs: Math.floor(Math.random() * 3) + 1,
+                    lastChecked: new Date().toISOString(),
+                    lastStatusText: "OK (Offline Loop)"
+                  };
+                }
+                return item;
+              })
+            );
+            return;
+          }
+
           const checkRes = await fetch("/api/monitor/ping", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -993,12 +1018,34 @@ export default function App() {
                 <Wifi className="w-4 h-4 text-cyan-400" />
                 WATCHDOG ENDPOINTS
               </h3>
-              <button
-                onClick={() => setShowAddServer(!showAddServer)}
-                className="text-[9px] bg-cyan-950 px-2 py-0.5 text-cyan-400 rounded-md border border-cyan-500/20 hover:bg-cyan-900 cursor-pointer transition-colors"
-              >
-                {showAddServer ? "Close" : "+ Add"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const nextMode = !offlineMode;
+                    setOfflineMode(nextMode);
+                    addLog(
+                      "HUDCORE", 
+                      `Global Telemetry Mode changed to: ${nextMode ? "OFFLINE COPROCESSOR" : "CLOUD REAL-TIME"}.`, 
+                      nextMode ? "warning" : "success"
+                    );
+                    playSyntheticAlert("beep");
+                  }}
+                  className={`text-[8.5px] px-2 py-0.5 rounded-md border tracking-wider uppercase font-bold cursor-pointer transition-all ${
+                    offlineMode
+                      ? "bg-amber-950/40 border-amber-500/40 text-amber-300"
+                      : "bg-cyan-950/40 border-cyan-500/20 text-cyan-400 hover:border-cyan-400"
+                  }`}
+                  title={offlineMode ? "Switch to Cloud Connected Watchdog" : "Switch to Local Offline Sandbox Mode"}
+                >
+                  {offlineMode ? "📶 Offline Loop" : "🌐 Connected"}
+                </button>
+                <button
+                  onClick={() => setShowAddServer(!showAddServer)}
+                  className="text-[9px] bg-cyan-950 px-2 py-0.5 text-cyan-400 rounded-md border border-cyan-500/20 hover:bg-cyan-900 cursor-pointer transition-colors"
+                >
+                  {showAddServer ? "Close" : "+ Add"}
+                </button>
+              </div>
             </div>
 
             {showAddServer && (

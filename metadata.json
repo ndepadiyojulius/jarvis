@@ -1,0 +1,6 @@
+{
+  "name": "Engineering Companion HUD",
+  "description": "A developer-focused desk companion and resource monitor with active alerts, speech cue notifications, a cybertech visual HUD, tasks, and Gemini-based diagnostic intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

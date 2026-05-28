@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@layer utilities {
+  /* Dynamic tech scanlines background styling */
+  .bg-scanlines {
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 255, 255, 0.15) 50%
+    );
+    background-size: 100% 4px;
+  }
+
+  /* Core animations */
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 25s linear infinite;
+  }
+
+  @keyframes float-gentle {
+    0%, 100% {
+      transform: translateY(0px) scale(1);
+    }
+    50% {
+      transform: translateY(-8px) scale(1.02);
+    }
+  }
+
+  .animate-float-gentle {
+    animation: float-gentle 6s ease-in-out infinite;
+  }
+
+  /* Scrollbar custom styles */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(6, 182, 212, 0.3);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(6, 182, 212, 0.6);
+  }
+}
